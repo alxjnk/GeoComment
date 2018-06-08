@@ -9,7 +9,8 @@ import './style.css';
 // unzoom grouping marks
 
 let myMap,
-    commentsHash = {};
+    commentsHash = {},
+    placeList;
 let balloon = document.querySelector('.baloon');
 let balloonHeader = document.querySelector('.baloon-header');
 let commentList = document.querySelector('.comments-list');
@@ -105,10 +106,14 @@ ymaps.ready(() => {
         zoom: 18
     });
     let clusterer = new ymaps.Clusterer({ clusterDisableClickZoom: true });
-    let objects = [];
+    var myObjectManager = new ymaps.ObjectManager({ 
+        clusterize: true,
+        clusterDisableClickZoom: true
+    });
 
         // create elemnt by click
     myMap.events.add('click', function (e) {
+        myMap.controls.remove(placeList);        
         balloon.style.zIndex = "0";
         const coords = e.get('coords');   
             (async () => {
@@ -119,45 +124,52 @@ ymaps.ready(() => {
                     localStorage.data = JSON.stringify(data);
                     
                     let {features} = data;
-                    var placeList = new ymaps.control.ListBox({  //TODO: change to div
+                    placeList = new ymaps.control.ListBox({  //TODO: change to div
                         data: {
                             content: 'Select a BAR'
                         },
                         items: [],
                         float: 'none'
                     });
-                    // myMap.controls.remove(placeList);  //TODO: remove controls                                                
                     for (let i = 0; i < features.length; i++) {   
                         let companyData = features[i].properties.CompanyMetaData;
                         let companyCoords = features[i].geometry.coordinates.reverse();
                         let {id} = companyData;
-                        commentsHash[id] = companyData;
+                        commentsHash[id] = (commentsHash[id]) ? commentsHash[id] : companyData;
                         commentsHash[id].coords = companyCoords;
-                        placeList.add(new ymaps.control.ListBoxItem(companyData.name)); //create controls
-                        
-                        placeList.get(i).events.add('click',  () => { // click event on controls
-                            renderBaloon(companyData); // render empty
+                        placeList.add(new ymaps.control.ListBoxItem(companyData.name)); 
+                        placeList.get(i).events.add('click',  () => { 
+                            myMap.controls.remove(placeList);
+                            if (myObjectManager.getObjectState(id).found) {
+                                renderBaloon(commentsHash[id]); 
+                            } else {
+                                renderBaloon(companyData); 
+                            }        
                             myMap.setCenter(companyCoords, 18);                            
                         });
                     }
                     let form = document.querySelector('#comments-form');
-                    form.button.addEventListener('click', e => { //click event on form
+                    form.button.addEventListener('click', e => {
                         let id = form.parentNode.id;                                                                                             
                         e.preventDefault();
-                        console.log(id);                        
                         commentSave(id);
-                        renderBaloon(commentsHash[id]); // render with
-                        let placeMark = new ymaps.Placemark(commentsHash[id].coords);
-                        placeMark.events.add('click', e => {
-                            console.log(e);
-                            renderBaloon(commentsHash[id]);
-                        });
-                        objects.push(placeMark)
-                        clusterer.add(objects);  
-                        myMap.geoObjects.add(clusterer);
-                                                      
+                        renderBaloon(commentsHash[id]); 
+                        if (myObjectManager.getObjectState(id).found) return;
+                        myObjectManager.add({
+                            type: 'Feature',
+                            id: id,
+                            geometry: {
+                                type: 'Point',
+                                coordinates: commentsHash[id].coords
+                            },
+                        });                           
                     });
-                    // console.log(commentsHash);
+                    myMap.geoObjects.add(myObjectManager);
+                    myObjectManager.objects.events.add('click', e => {
+                        let objectId = e.get('objectId');
+                        console.log(objectId);
+                        renderBaloon(commentsHash[objectId]);                            
+                    });
                     myMap.controls.add(placeList);
                     placeList.state.set('expanded', true);
                     } catch (e) {
