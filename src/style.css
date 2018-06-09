@@ -66,3 +66,34 @@ li {
 .close:after {
   transform: rotate(-45deg);
 }
+
+/* slider */
+
+.arrow{
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 46%;
+  background:orange;
+  opacity: 0;
+
+  transition: 0.3s ease;
+}
+
+.left{
+  left: -20px;
+}
+
+.right{
+  right: -20px;
+}
+
+.baloon:hover .left{
+  left: 20px;
+  opacity: 1;
+}
+
+.baloon:hover .right{
+  right: 20px;
+  opacity: 1;
+}

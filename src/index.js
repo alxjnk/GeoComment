@@ -29,7 +29,6 @@ function getLLc(address) {
 function renderBaloon(data) { //TODO: unpack features
     let form = document.querySelector('#comments-form');   
     let { id, name, address, comments } = data;
-    console.log(data);
     let divName = document.querySelector('.baloon-header-name');
     let divAddress = document.querySelector('.baloon-header-address');
     divName.innerHTML = `<h3>${name}</h3>`;
@@ -74,7 +73,6 @@ function commentSave(id) {
         commentsHash[id].comments = [];
     }
     if (!form.firstname.value || !form.comment.value) return;
-    console.log(`<li>${form.firstname.value} сказал: ${form.comment.value}`);
     commentsHash[id].comments.push(`<li>${form.firstname.value} сказал: ${form.comment.value}`);                
 }
 
@@ -143,9 +141,12 @@ ymaps.ready(() => {
 
                         e.preventDefault();
                         commentSave(id);
-                        renderBaloon(commentsHash[id]); 
+                        if (!form.comment.value) {
+                            renderBaloon(companyData);
+                        } else {                        
+                            renderBaloon(commentsHash[id]);
+                        } 
                         if (myObjectManager.getObjectState(id).found) return;
-                        
                         myObjectManager.add({
                             type: 'Feature',
                             id: id,
@@ -155,7 +156,38 @@ ymaps.ready(() => {
                             },
                         });                           
                     });
+                    
                     myMap.geoObjects.add(myObjectManager);
+
+                    myObjectManager.events.add('click', (e) => {
+                        let id = e.get('objectId');
+                        let objects = myObjectManager.clusters.overlays.getById(id)._data.features;
+                        let items = objects.length;
+                        let left = document.createElement('div');
+                        let right = document.createElement('div');
+                        left.className = 'arrow left';
+                        right.className = 'arrow right';
+                        balloon.appendChild(left);
+                        balloon.appendChild(right);
+                        let count = 0;
+                        right.addEventListener('click', ()=> {
+                            count++;
+                            count = (count >= items) ? items - 1: count;
+                            renderBaloon(commentsHash[objects[count].id]);                            
+                        })
+                        left.addEventListener('click', ()=> {
+                            count--;
+                            count = (count < 0) ? 0: count;
+                            renderBaloon(commentsHash[objects[count].id]);                            
+                        })
+                        renderBaloon(commentsHash[objects[count].id]);
+                         
+                        for (let object of objects) {
+                            console.log(commentsHash[object.id]);
+                        }
+                        
+                    });
+                    
 
                     myObjectManager.objects.events.add('click', e => {
                         let objectId = e.get('objectId');
