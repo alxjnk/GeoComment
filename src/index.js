@@ -1,13 +1,22 @@
 import _ from 'lodash';
 import './style.css';
 
+
+
+
 let myMap,
     commentsHash = {},
     placeList;
 let balloon = document.querySelector('.baloon');
 let balloonHeader = document.querySelector('.baloon-header');
-let commentList = document.querySelector('.comments-list');
+let balloonFooter = document.querySelector('.baloon-footer');
+let balloonContent = document.querySelector('.baloon-content');
 let closeButton = document.querySelector('.close');
+let comment = document.querySelector('.comment');
+let left = document.querySelector('.left');
+let right = document.querySelector('.right');
+let nav = document.createElement('div');
+
 
 // data from yandex
 
@@ -26,41 +35,66 @@ function getLLc(address) {
 
 // data rendering
 
-function renderBaloon(data) { //TODO: unpack features
+function renderBaloon(data, items) { //TODO: unpack features
     let form = document.querySelector('#comments-form');   
     let { id, name, address, comments } = data;
     let divName = document.querySelector('.baloon-header-name');
     let divAddress = document.querySelector('.baloon-header-address');
     divName.innerHTML = `<h3>${name}</h3>`;
-    divAddress.innerHTML =  `<p>${address}<p>`;
+    divAddress.innerHTML =  `<p>${address}</p>`;
     balloon.id = id;    
     balloon.style.zIndex = "2018";
     balloon.style.display = "block";
-    let commentList = document.querySelector('.comments-list');
-    commentList.innerHTML = '';
-    if (comments) {
-        for (let comment of comments) {
-            commentList.innerHTML = commentList.innerHTML + comment;                
-        } 
-    } else {
-        let li = document.createElement('li');    
-        li.textContent = 'Пока нет отзывов';   
-        commentList.appendChild(li);                                  
+    nav.className = "baloon-navigation";
+    if (items) {
+        form.style.display = "none";
+        comment.style.display = "block";
+        left.style.display ='block';
+        right.style.display ='block';        
+        balloonContent.innerHTML = '';
+        for (let el of data.Features) {    //"TODO: get some features here
+            if(el.value) {
+                balloonContent.innerHTML = balloonContent.innerHTML + `<li>${el.name} ${el.value}</li>`;
+            } else if(el.values) {
+                for (let val of el.values) {
+                    balloonContent.innerHTML = balloonContent.innerHTML + `<li>${el.name} ${val.value}</li>`;
+                }
+
+            }
         }
-    form.firstname.value = '';
-    form.comment.value = '';
-
-
-    // for (let el of companyData.Features) {    "TODO: get some features here
-                            //     if(el.value) {
-                            //         console.log(el.name, el.value);
-                            //     } else if(el.values) {
-                            //         for (let val of el.values) {
-                            //             console.log(el.name, val.value);
-                            //         }
-
-                            //     }
-                            // }
+        comment.addEventListener('click', () => {  //open baloon for comments
+            renderBaloon(data);
+        });
+        if(nav.childNodes.length > 0) return;
+        for (let i = 0; i < items.length; i++) {
+            let a = document.createElement('a');
+            a.textContent = i;
+            a.addEventListener('click', e => { //slider navigation
+                renderBaloon(commentsHash[items[i].id], items);
+            });
+            a.href = '#';
+            nav.appendChild(a);
+        }
+        balloonFooter.appendChild(nav);
+        
+    } else {
+        comment.style.display = 'none';
+        left.style.display ='none';
+        right.style.display ='none';        
+        form.style.display = 'block';
+        balloonContent.innerHTML = '';
+        if (comments) {
+            for (let comment of comments) {
+                balloonContent.innerHTML = balloonContent.innerHTML + comment;                
+            } 
+        } else {
+            let li = document.createElement('li');    
+            li.textContent = 'Отзывов пока нет..';   
+            balloonContent.appendChild(li);                                  
+            }
+        form.firstname.value = '';
+        form.comment.value = '';
+    }
 }
 
 // data manipulation
@@ -72,8 +106,9 @@ function commentSave(id) {
     if(!commentsHash[id].comments) {
         commentsHash[id].comments = [];
     }
+    let utc = new Date().toJSON().slice(0,10).replace(/-/g,'/');            
     if (!form.firstname.value || !form.comment.value) return;
-    commentsHash[id].comments.push(`<li>${form.firstname.value} сказал: ${form.comment.value}`);                
+    commentsHash[id].comments.push(`<li><b>${form.firstname.value}</b> <span>${utc}</span><br><br> ${form.comment.value}</li><br>`);                
 }
 
 // close baloons
@@ -82,6 +117,8 @@ closeButton.addEventListener('click', () => {
     balloon.style.zIndex = "0";
     myMap.controls.remove(placeList);        
 });
+
+
 
 // map creation
 
@@ -137,12 +174,11 @@ ymaps.ready(() => {
                     }
                     let form = document.querySelector('#comments-form');
                     form.button.addEventListener('click', e => {
-                        let id = form.parentNode.id;
-
+                        let id = balloon.id;
                         e.preventDefault();
                         commentSave(id);
                         if (!form.comment.value) {
-                            renderBaloon(companyData);
+                            return;
                         } else {                        
                             renderBaloon(commentsHash[id]);
                         } 
@@ -163,28 +199,18 @@ ymaps.ready(() => {
                         let id = e.get('objectId');
                         let objects = myObjectManager.clusters.overlays.getById(id)._data.features;
                         let items = objects.length;
-                        let left = document.createElement('div');
-                        let right = document.createElement('div');
-                        left.className = 'arrow left';
-                        right.className = 'arrow right';
-                        balloon.appendChild(left);
-                        balloon.appendChild(right);
                         let count = 0;
                         right.addEventListener('click', ()=> {
                             count++;
                             count = (count >= items) ? items - 1: count;
-                            renderBaloon(commentsHash[objects[count].id]);                            
+                            renderBaloon(commentsHash[objects[count].id], objects);                            
                         })
                         left.addEventListener('click', ()=> {
                             count--;
                             count = (count < 0) ? 0: count;
-                            renderBaloon(commentsHash[objects[count].id]);                            
+                            renderBaloon(commentsHash[objects[count].id], objects);                            
                         })
-                        renderBaloon(commentsHash[objects[count].id]);
-                         
-                        for (let object of objects) {
-                            console.log(commentsHash[object.id]);
-                        }
+                        renderBaloon(commentsHash[objects[count].id], objects);
                         
                     });
                     

@@ -17,27 +17,74 @@ body {
 }
 
 .baloon-header {
-  display: flex;
-  flex-direction: column;
+  background-color: #ff8663;
+  color: white;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;      
+  padding: 10px;
 }
 
 .baloon {
   display: none;
-  min-width: 200px;
+  min-width: 340px;
+  max-width: 340px;
   min-height: 480px;
   position: absolute;
   background-color: white;
   top: 25%;
   left: 25%;
-  padding: 10px;
-  
+  border-radius: 20px;
 }
 
+.baloon-content {
+  min-height: 150px;
+  padding: 10px;
+}
+
+.baloon-footer {
+  padding: 5px;  
+}
+
+
+/* ELEMeNTS */
 
 li {
   list-style: none;
 }
 
+span {
+  color: grey;  
+}
+
+/* input */
+input {
+  display: flex;
+  font-size: 1.2em;
+  border-style: solid;
+  padding: 5px;
+}
+
+textarea:nth-child(3) {
+  border-radius: 15px;
+  min-width: 90%;
+  min-height: 100px;
+  padding: 5px;
+  border-style: solid;  
+}
+
+input:nth-child(1) {
+  border-radius: 15px;  
+  min-width: 90%;
+}
+
+input:nth-child(5) {
+  margin-left: 70%;
+  background-color:#ff8663;
+  color: white;
+  border-radius: 10px;
+  border: 0;
+  
+}
 
 /* button */
 
@@ -58,7 +105,7 @@ li {
   content: ' ';
   height: 33px;
   width: 4px;
-  background-color: #333;
+  background-color: white;
 }
 .close:before {
   transform: rotate(45deg);
@@ -74,7 +121,7 @@ li {
   width: 20px;
   height: 20px;
   top: 46%;
-  background:orange;
+  background: #ff8663;
   opacity: 0;
 
   transition: 0.3s ease;
@@ -96,4 +143,26 @@ li {
 .baloon:hover .right{
   right: 20px;
   opacity: 1;
+}
+
+.baloon-navigation {
+  margin: 1em 0;
+  display: flex;
+  justify-content: space-around;
+}
+
+.current {
+  border-color: #ff8663;
+}
+
+.baloon-navigation a {
+	width: 2em;
+	height: 2em;
+	border: 1px solid #ccc;
+	text-align: center;
+	text-decoration: none;
+	color: #000;
+	display: inline-block;
+	line-height: 2;
+	margin-right: 0.5em;
 }
