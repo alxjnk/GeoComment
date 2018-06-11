@@ -2,7 +2,7 @@ import _ from 'lodash';
 import './style.css';
 
 
-
+//TODO: make double click search for beer
 
 let myMap,
     commentsHash = {},
@@ -44,7 +44,7 @@ function renderBaloon(data, items) {
     divAddress.innerHTML =  `<p>${address}</p>`;
     balloon.id = id;    
     balloon.style.zIndex = "2018";
-    balloon.style.display = "block";
+    balloon.style.display = "flex";
     nav.className = "baloon-navigation";
     if (items) {                           // slider render
         form.style.display = "none";
@@ -54,16 +54,19 @@ function renderBaloon(data, items) {
         balloonContent.innerHTML = '';
         for (let el of data.Features) {    //"FIXME: beatify fetures output
             if(el.value) {
-                balloonContent.innerHTML = balloonContent.innerHTML + `<li>${el.name} ${el.value}</li>`;
+                balloonContent.innerHTML = (el.value === true) ? balloonContent.innerHTML + `<li>${el.name}</li><hr>` : balloonContent.innerHTML + `<li>${el.name} ${el.value}</li><hr>`;
             } else if(el.values) {
+                balloonContent.innerHTML = balloonContent.innerHTML + `<li><b>${el.name}:</b></li>`
                 for (let val of el.values) {
-                    balloonContent.innerHTML = balloonContent.innerHTML + `<li>${el.name} ${val.value}</li>`;
+                    balloonContent.innerHTML = balloonContent.innerHTML + `<li>${val.value}</li>`;
                 }
+                balloonContent.innerHTML = balloonContent.innerHTML + `<hr>`;
 
             }
         }
         comment.addEventListener('click', () => {  //open baloon for comments
             renderBaloon(data);
+            nav.innerHTML = '';            
         });
         if(nav.childNodes.length > 0) return; //check for nav
         console.log(items.length);
@@ -127,7 +130,8 @@ closeButton.addEventListener('click', () => {
 ymaps.ready(() => {     
     myMap = new ymaps.Map ("map", {
         center: [55.7595946764199,37.639345541000345],
-        zoom: 18
+        zoom: 18,
+        controls: []
     });
     let myObjectManager = new ymaps.ObjectManager({ 
         clusterize: true,
@@ -144,9 +148,7 @@ ymaps.ready(() => {
                 try {
                     let {geoObjects} = await ymaps.geocode(coords);
                     let address = geoObjects.get(0).getAddressLine();
-                    let data = await getLLc(address);
-                    localStorage.data = JSON.stringify(data);
-                    
+                    let data = await getLLc(address);                    
                     let {features} = data;
                     placeList = new ymaps.control.ListBox({  //TODO: change to div
                         data: {
