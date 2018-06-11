@@ -35,7 +35,7 @@ function getLLc(address) {
 
 // data rendering
 
-function renderBaloon(data, items) { //TODO: unpack features
+function renderBaloon(data, items) { 
     let form = document.querySelector('#comments-form');   
     let { id, name, address, comments } = data;
     let divName = document.querySelector('.baloon-header-name');
@@ -46,13 +46,13 @@ function renderBaloon(data, items) { //TODO: unpack features
     balloon.style.zIndex = "2018";
     balloon.style.display = "block";
     nav.className = "baloon-navigation";
-    if (items) {
+    if (items) {                           // slider render
         form.style.display = "none";
         comment.style.display = "block";
         left.style.display ='block';
         right.style.display ='block';        
         balloonContent.innerHTML = '';
-        for (let el of data.Features) {    //"TODO: get some features here
+        for (let el of data.Features) {    //"FIXME: beatify fetures output
             if(el.value) {
                 balloonContent.innerHTML = balloonContent.innerHTML + `<li>${el.name} ${el.value}</li>`;
             } else if(el.values) {
@@ -65,19 +65,20 @@ function renderBaloon(data, items) { //TODO: unpack features
         comment.addEventListener('click', () => {  //open baloon for comments
             renderBaloon(data);
         });
-        if(nav.childNodes.length > 0) return;
-        for (let i = 0; i < items.length; i++) {
+        if(nav.childNodes.length > 0) return; //check for nav
+        console.log(items.length);
+        for (let i = 1; i <= items.length; i++) {
             let a = document.createElement('a');
             a.textContent = i;
             a.addEventListener('click', e => { //slider navigation
-                renderBaloon(commentsHash[items[i].id], items);
+                renderBaloon(commentsHash[items[i - 1].id], items);
             });
             a.href = '#';
             nav.appendChild(a);
         }
         balloonFooter.appendChild(nav);
         
-    } else {
+    } else {                               //simple comment render
         comment.style.display = 'none';
         left.style.display ='none';
         right.style.display ='none';        
@@ -115,7 +116,8 @@ function commentSave(id) {
 
 closeButton.addEventListener('click', () => {
     balloon.style.zIndex = "0";
-    myMap.controls.remove(placeList);        
+    myMap.controls.remove(placeList);
+    nav.innerHTML = '';        
 });
 
 
@@ -134,6 +136,7 @@ ymaps.ready(() => {
     });
 
     myMap.events.add('click', function (e) {
+        nav.innerHTML = '';                
         myMap.controls.remove(placeList);        
         balloon.style.zIndex = "0";
         const coords = e.get('coords');   
@@ -201,13 +204,19 @@ ymaps.ready(() => {
                         let items = objects.length;
                         let count = 0;
                         right.addEventListener('click', ()=> {
-                            count++;
-                            count = (count >= items) ? items - 1: count;
+                            if (count >= items -1) {
+                                count = 0;
+                            } else if(count < items -1) {
+                                count++;
+                            }
                             renderBaloon(commentsHash[objects[count].id], objects);                            
                         })
                         left.addEventListener('click', ()=> {
-                            count--;
-                            count = (count < 0) ? 0: count;
+                            if (count > 0) {
+                                count--;
+                            } else if(count <= 0) {
+                                count = items - 1;
+                            }
                             renderBaloon(commentsHash[objects[count].id], objects);                            
                         })
                         renderBaloon(commentsHash[objects[count].id], objects);
