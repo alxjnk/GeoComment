@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>GeoComment</title>
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+</head>
+<body>
+    <div id="map">
+        <div class="baloon" id="">
+            <div class="arrow left"></div>
+            <div class="arrow right"></div>
+        <div class="baloon-header">
+            <div class="baloon-header-name"></div>
+            <div class="baloon-header-address"></div>
+            <a href="#" class="close"></a>            
+        </div>
+        <div class="baloon-content">
+        </div>
+        <div class="baloon-footer"> 
+            <div class="comment">Оставить комментарий</div>
+            <form id="comments-form">
+            <input type="text" name="firstname" placeholder="Ваше имя">
+            <br>
+            <textarea type="text" name="comment" placeholder="Поделитесь впечатлениями" autocomplete="off"></textarea>
+            <br>
+            <input type="button" name="button" value="Добавить">
+            </form>
+        </div>
+        </div>
+    </div>  
+<script type="text/javascript" src="app.bundle.js"></script></body>
+</html>
